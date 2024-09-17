@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image and Describe Character</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #222;
+            margin-bottom: 20px;
+        }
+        
+        input, button, textarea {
+            display: block;
+            width: calc(100% - 20px);
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        #resultText {
+            margin-top: 20px;
+            height: 150px;
+            resize: vertical;
+        }
+        
+        #previewImage {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            max-width: 100%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Image and Describe Character</h1>
+        <input type="file" id="imageUpload" accept="image/*">
+        <input type="text" id="apiKey" placeholder="Enter your API key">
+        <button id="submitButton">Submit</button>
+        <textarea id="resultText" rows="10" cols="50" placeholder="Character description will appear here..."></textarea>
+        <img id="previewImage" />
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        document.getElementById('submitButton').addEventListener('click', async () => {
+            const apiKey = document.getElementById('apiKey').value;
+            const imageFile = document.getElementById('imageUpload').files[0];
+
+            if (!apiKey || !imageFile) {
+                alert("Please enter your API key and upload an image.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                try {
+                    const imageData = reader.result.split(',')[1];
+                    const genAI = new GoogleGenerativeAI(apiKey);
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                    const result = await model.generateContent([
+                        "Tell me about this image.",
+                        {
+                            inlineData: {
+                                data: imageData,
+                                mimeType: imageFile.type,
+                            },
+                        },
+                    ]);
+
+                    document.getElementById('resultText').value = await result.response.text();
+                    document.getElementById('previewImage').src = reader.result;
+                    document.getElementById('previewImage').style.display = 'block';
+                } catch (error) {
+                    console.error("Error generating character description:", error);
+                    alert("Error generating character description. Check console for details.");
+                }
+            };
+            reader.readAsDataURL(imageFile);
+        });
+    </script>
+</body>
+</html>
