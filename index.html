@@ -85,42 +85,42 @@
     <script type="module">
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        document.getElementById('submitButton').addEventListener('click', async () => {
-            const apiKey = document.getElementById('apiKey').value;
-            const imageFile = document.getElementById('imageUpload').files[0];
+       document.getElementById('submitButton').addEventListener('click', async () => {
+    const apiKey = document.getElementById('apiKey').value;
+    const imageFile = document.getElementById('imageUpload').files[0];
 
-            if (!apiKey || !imageFile) {
-                alert("Please enter your API key and upload an image.");
-                return;
-            }
+    if (!apiKey || !imageFile) {
+        alert("Please enter your API key and upload an image.");
+        return;
+    }
 
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                try {
-                    const imageData = reader.result.split(',')[1];
-                    const genAI = new GoogleGenerativeAI(apiKey);
-                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+        try {
+            const imageData = reader.result.split(',')[1];
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-                    const result = await model.generateContent([
-                        "Tell me about this image.",
-                        {
-                            inlineData: {
-                                data: imageData,
-                                mimeType: imageFile.type,
-                            },
-                        },
-                    ]);
+            const result = await model.generateContent([
+                "Describe the image or its character, including appearance/persona, and name the character.",
+                {
+                    inlineData: {
+                        data: imageData,
+                        mimeType: imageFile.type,
+                    },
+                },
+            ]);
 
-                    document.getElementById('resultText').value = await result.response.text();
-                    document.getElementById('previewImage').src = reader.result;
-                    document.getElementById('previewImage').style.display = 'block';
-                } catch (error) {
-                    console.error("Error generating character description:", error);
-                    alert("Error generating character description. Check console for details.");
-                }
-            };
-            reader.readAsDataURL(imageFile);
-        });
+            document.getElementById('resultText').value = await result.response.text();
+            document.getElementById('previewImage').src = reader.result;
+            document.getElementById('previewImage').style.display = 'block';
+        } catch (error) {
+            console.error("Error generating character description:", error);
+            alert(`Error generating character description: ${error.message}`);
+        }
+    };
+    reader.readAsDataURL(imageFile);
+});
     </script>
 </body>
 </html>
